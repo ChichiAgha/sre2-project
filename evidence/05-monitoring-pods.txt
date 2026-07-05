@@ -1,0 +1,14 @@
+NAME                                                     READY   STATUS    RESTARTS      AGE     IP            NODE                                        NOMINATED NODE   READINESS GATES
+alertmanager-monitoring-kube-prometheus-alertmanager-0   2/2     Running   0             5h16m   10.20.1.161   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+loki-0                                                   1/1     Running   0             5h      10.20.2.135   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+loki-promtail-6ttjh                                      1/1     Running   0             5h      10.20.2.101   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+loki-promtail-v7fnz                                      1/1     Running   0             4h50m   10.20.3.183   ip-10-20-3-65.eu-west-2.compute.internal    <none>           <none>
+loki-promtail-zn25l                                      1/1     Running   0             5h      10.20.1.146   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+monitoring-grafana-d5895d8bc-q5rlq                       3/3     Running   0             5h16m   10.20.1.80    ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+monitoring-kube-prometheus-operator-7c88557d49-qr655     1/1     Running   0             5h16m   10.20.1.109   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+monitoring-kube-state-metrics-567d85f95f-fq247           1/1     Running   0             5h16m   10.20.1.64    ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+monitoring-prometheus-node-exporter-789h8                1/1     Running   0             5h16m   10.20.1.163   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+monitoring-prometheus-node-exporter-8mdjg                1/1     Running   0             4h50m   10.20.3.65    ip-10-20-3-65.eu-west-2.compute.internal    <none>           <none>
+monitoring-prometheus-node-exporter-vcrgt                1/1     Running   0             5h16m   10.20.2.126   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+prometheus-monitoring-kube-prometheus-prometheus-0       2/2     Running   0             5h16m   10.20.1.188   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+tempo-0                                                  1/1     Running   4 (39m ago)   4h53m   10.20.3.148   ip-10-20-3-65.eu-west-2.compute.internal    <none>           <none>

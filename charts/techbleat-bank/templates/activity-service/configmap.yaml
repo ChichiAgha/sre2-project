@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: activity-service-config
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: backend
+    app.kubernetes.io/component: activity-service
+data:
+  FRONTEND_ORIGIN: {{ .Values.config.frontendOrigin | quote }}
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"

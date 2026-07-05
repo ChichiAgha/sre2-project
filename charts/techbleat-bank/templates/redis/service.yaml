@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: cache
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: {{ .Values.redis.service.port }}
+      targetPort: redis
+  selector:
+    app.kubernetes.io/component: redis
+    {{- include "techbleat.selectorLabels" . | nindent 4 }}

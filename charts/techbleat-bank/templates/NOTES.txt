@@ -1,0 +1,20 @@
+Techbleat Global Bank has been installed.
+
+Namespace:
+  {{ include "techbleat.namespace" . }}
+
+Useful checks:
+  kubectl get pods -n {{ include "techbleat.namespace" . }}
+  kubectl get svc -n {{ include "techbleat.namespace" . }}
+  kubectl get hpa -n {{ include "techbleat.namespace" . }}
+
+If using the default local host value, add this to /etc/hosts:
+  127.0.0.1 {{ .Values.ingress.host }}
+
+Then open:
+  http://{{ .Values.ingress.host }}
+
+Health checks through port-forwarding:
+  kubectl port-forward -n {{ include "techbleat.namespace" . }} svc/user-service 8000:8000
+  kubectl port-forward -n {{ include "techbleat.namespace" . }} svc/transaction-service 8080:8080
+  kubectl port-forward -n {{ include "techbleat.namespace" . }} svc/activity-service 8001:8001

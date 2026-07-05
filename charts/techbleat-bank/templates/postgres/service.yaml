@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: database
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.service.port }}
+      targetPort: postgres
+  selector:
+    app.kubernetes.io/component: postgres
+    {{- include "techbleat.selectorLabels" . | nindent 4 }}

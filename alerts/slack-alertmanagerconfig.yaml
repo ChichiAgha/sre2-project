@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: techbleat-bank-slack
+  namespace: banking
+  labels:
+    alertmanagerConfig: techbleat-bank
+    app.kubernetes.io/name: techbleat-bank
+    app: techbleat-bank
+    environment: dev
+spec:
+  route:
+    receiver: slack-critical
+    groupBy:
+      - alertname
+      - service
+      - severity
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 2h
+    matchers:
+      - name: severity
+        value: critical
+        matchType: "="
+  receivers:
+    - name: slack-critical
+      slackConfigs:
+        - apiURL:
+            name: alertmanager-slack-webhook
+            key: url
+          channel: "#techbleat-alerts"
+          username: "techbleat-alertmanager"
+          sendResolved: true
+          title: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
+          text: |-
+            *Severity:* {{ .CommonLabels.severity }}
+            *Service:* {{ .CommonLabels.service }}
+            *Summary:* {{ .CommonAnnotations.summary }}
+            *Description:* {{ .CommonAnnotations.description }}
+            *Runbook:* {{ .CommonAnnotations.runbook_url }}

@@ -1,0 +1,5 @@
+NAME                  REFERENCE                        TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+activity-service      Deployment/activity-service      cpu: 2%/70%   1         2         1          8h
+frontend              Deployment/frontend              cpu: 2%/70%   1         2         1          8h
+transaction-service   Deployment/transaction-service   cpu: 0%/70%   2         6         2          8h
+user-service          Deployment/user-service          cpu: 2%/70%   1         2         1          8h

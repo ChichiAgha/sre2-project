@@ -1,270 +1,490 @@
-# Techbleat Global Bank - Backend
+# Techbleat Global Bank - DevOps Deployment
 
-A microservices-based banking platform built with Python (FastAPI), Java (Spring Boot), PostgreSQL, Redis, and Apache Kafka. The system handles user management, financial transactions, and activity logging through independent, event-driven services.
+Techbleat Global Bank is a microservices banking platform deployed on AWS EKS with Docker, Kubernetes, Helm, Prometheus, Grafana, Alertmanager, Loki, Tempo, and Slack notifications.
 
----
+The application includes:
 
-## Architecture Overview
+- Frontend: React/Vite served by Nginx
+- User Service: FastAPI, PostgreSQL-backed user/account creation
+- Transaction Service: Spring Boot, PostgreSQL/Redis/Kafka-backed transactions
+- Activity Service: FastAPI Kafka consumer for activity logs
+- Infrastructure: PostgreSQL, Redis, Kafka
+- Observability: Prometheus, Grafana, Alertmanager, ServiceMonitors, exporters, PrometheusRules, Loki/Promtail, Tempo/OpenTelemetry
 
-<iframe src="architectural-diagram.html" width="100%" height="520" frameborder="0" style="border:none;border-radius:8px;"></iframe>
+## Repository Deliverables
 
-> **Note:** The interactive diagram above renders in local viewers (VS Code preview, etc.). On GitHub, iframes are blocked — use the static image below instead.
+| Requirement | Location |
+|---|---|
+| Kubernetes manifests / Helm chart | `charts/techbleat-bank/` |
+| Container images with versioned tags | Public ECR image URLs below |
+| Grafana Operations dashboard JSON | `dashboards/operations-overview.json` |
+| Grafana Business Metrics dashboard JSON | `dashboards/business-metrics.json` |
+| Prometheus alert definitions | `alerts/critical-alerts.yaml`, `charts/techbleat-bank/templates/critical-alerts.yaml` |
+| Critical alert runbooks | `runbooks/` |
+| Screenshot/evidence | `screenshots/`, `evidence/` |
+| Deployment documentation | This README |
+| Demo video | Add link below |
 
-![Architecture Diagram](architectural-diagram.png)
+Demo video:
 
+```text
+TODO: add 3-5 minute demo video link
 ```
-                         ┌──────────────────┐
-                         │   Frontend (3000) │
-                         └────────┬─────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              ▼                   ▼                   ▼
-   ┌─────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-   │  User Service   │  │Transaction Service│  │Activity Service  │
-   │  FastAPI :8000  │  │ Spring Boot :8080 │  │  FastAPI :8001   │
-   └────────┬────────┘  └────────┬─────────┘  └────────┬─────────┘
-            │                    │                       │
-            ▼                    ▼                       ▲
-   ┌─────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-   │   PostgreSQL    │  │      Redis       │  │      Kafka       │
-   │   Port 5432     │  │    Port 6379     │  │    Port 9092     │
-   └─────────────────┘  └──────────────────┘  └──────────────────┘
+
+## Container Images
+
+Application images are published to Public ECR:
+
+```text
+public.ecr.aws/k6r5h9u0/techbleat-global-bank-frontend:v2.0.2
+public.ecr.aws/k6r5h9u0/techbleat-global-bank-user-service:v2.0.2
+public.ecr.aws/k6r5h9u0/techbleat-global-bank-transaction-service:v2.0.3
+public.ecr.aws/k6r5h9u0/techbleat-global-bank-activity-service:v2.0.2
 ```
 
-### Services
+Infrastructure images are pulled from public registries:
 
-| Service | Language | Port | Responsibility |
-|---------|----------|------|----------------|
-| user-service | Python / FastAPI | 8000 | User registration and account creation |
-| transaction-service | Java / Spring Boot | 8080 | Deposits, withdrawals, transfers, balance queries |
-| activity-service | Python / FastAPI | 8001 | Activity log via Kafka consumer |
+```text
+postgres:15
+redis:7
+confluentinc/cp-kafka:8.1.1
+prometheuscommunity/postgres-exporter:v0.15.0
+oliver006/redis_exporter:v1.62.0
+danielqsj/kafka-exporter:v1.7.0
+```
 
-### Infrastructure
+## Level 1 - Local Docker Compose Validation
 
-| Component | Version | Port | Purpose |
-|-----------|---------|------|---------|
-| PostgreSQL | 15 | 5432 | Persistent data store |
-| Redis | 7 | 6379 | Balance caching |
-| Apache Kafka | 8.1.1 | 9092 | Event streaming between services |
+The application was first validated locally with Docker Compose to understand service communication before Kubernetes translation.
 
----
-
-## Prerequisites
-
-- [Docker](https://www.docker.com/get-started) 20.10+
-- [Docker Compose](https://docs.docker.com/compose/install/) v2+
-
-No local installations of Python, Java, or any database are needed — everything runs inside containers.
-
----
-
-## Running Locally
-
-### 1. Clone the repository
+Backend stack:
 
 ```bash
-git clone <repository-url>
 cd techbleat-global-bank-backend
-```
-
-### 2. Start all services
-
-```bash
 docker compose up --build
 ```
 
-This command will:
-- Build Docker images for all three services
-- Start PostgreSQL, Redis, and Kafka
-- Run the database initialisation script (`db-init/init.sql`)
-- Start all three application services
-
-### 3. Verify services are running
+Health checks:
 
 ```bash
-curl http://localhost:8000/health   # User Service
-curl http://localhost:8080/health   # Transaction Service
-curl http://localhost:8001/health   # Activity Service
+curl http://localhost:8000/health
+curl http://localhost:8080/health
+curl http://localhost:8001/health
 ```
 
-### 4. Stop all services
+Validated flow:
+
+- create users
+- deposit
+- withdraw
+- transfer
+- check balance
+- check transaction history
+- check activity logs
+
+Service dependencies:
+
+```text
+frontend -> user-service, transaction-service, activity-service
+user-service -> PostgreSQL
+transaction-service -> PostgreSQL, Redis, Kafka
+activity-service -> PostgreSQL, Kafka
+```
+
+## Level 2 - Containerisation And Image Hygiene
+
+Initial images were built and pushed as `v1.1.0`. Cleaner Kubernetes-ready images were later built as `v1.2.1` and observability-enabled services as `v1.3.0`.
+
+Hygiene work completed:
+
+- `.dockerignore` files added for build contexts
+- `.env.example` files used for documented configuration
+- real `.env` files kept out of Git
+- frontend runtime configuration added through `public/config.js`
+- backend secrets/config externalised through Kubernetes Secrets and ConfigMaps
+- Trivy image scanning added through GitHub Actions
+- build-scan-push workflow added so CI builds images, scans them, and only pushes to Public ECR if the scan policy passes
+- current scan evidence is stored under `security/trivy/`
+
+## Level 3 - Kubernetes Deployment
+
+The platform is deployed with Helm:
+
+```text
+charts/techbleat-bank/
+```
+
+Main chart contents:
+
+```text
+Chart.yaml
+values.yaml
+templates/
+  frontend/
+  user-service/
+  transaction-service/
+  activity-service/
+  postgres/
+  redis/
+  kafka/
+  critical-alerts.yaml
+  prometheusrules.yaml
+```
+
+Install or upgrade:
 
 ```bash
-docker compose down
+helm upgrade --install techbleat-bank charts/techbleat-bank \
+  --namespace banking \
+  --create-namespace \
+  --set namespace.create=false
 ```
 
-To also remove volumes (wipes database data):
+Validate:
 
 ```bash
-docker compose down -v
+kubectl get pods -n banking
+kubectl get svc -n banking
+kubectl get hpa -n banking
+kubectl get ingress -n banking
+kubectl get servicemonitor,prometheusrule -n banking
 ```
 
----
+Expected app state:
 
-## API Reference
+```text
+frontend                 1/1 Running
+user-service             1/1 Running
+transaction-service      2/2 Running
+activity-service         1/1 Running
+postgres                 1/1 Running
+redis                    1/1 Running
+kafka                    1/1 Running
+postgres-exporter        1/1 Running
+redis-exporter           1/1 Running
+kafka-exporter           1/1 Running
+```
 
-### User Service — `http://localhost:8000`
+## Application Access
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| POST | `/users` | Create a new user and bank account |
-| GET | `/users` | List all users |
+The EKS deployment has an NGINX Ingress Controller backed by an AWS load balancer.
 
-**Create User**
+Check the ingress address:
 
 ```bash
-curl -X POST http://localhost:8000/users \
-  -H "Content-Type: application/json" \
-  -d '{"id": "u001", "full_name": "Jane Doe", "email": "jane@example.com"}'
+kubectl get ingress -n banking -o wide
 ```
 
-Creating a user automatically initialises a bank account with a zero balance.
-
----
-
-### Transaction Service — `http://localhost:8080`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| POST | `/transactions/deposit` | Deposit funds |
-| POST | `/transactions/withdraw` | Withdraw funds |
-| POST | `/transactions/transfer` | Transfer between accounts |
-| GET | `/balance/{userId}` | Get account balance (Redis-cached) |
-| GET | `/transactions/{userId}` | Get last 20 transactions |
-
-The user ID is passed via the `X-User-Id` request header for all write operations.
-
-**Deposit**
+Test through the load balancer with the expected host:
 
 ```bash
-curl -X POST http://localhost:8080/transactions/deposit \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: u001" \
-  -d '{"amount": 500.00}'
+INGRESS=$(kubectl get ingress techbleat-bank -n banking -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+curl -I -H "Host: bank.local" "http://$INGRESS/"
+curl -H "Host: bank.local" "http://$INGRESS/api/users/health"
 ```
 
-**Withdraw**
+For browser testing without DNS, add a local hosts entry pointing `bank.local` to the ingress endpoint if your environment supports it, or keep using port-forward:
 
 ```bash
-curl -X POST http://localhost:8080/transactions/withdraw \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: u001" \
-  -d '{"amount": 100.00}'
+kubectl port-forward -n banking svc/frontend 3000:80
 ```
 
-**Transfer**
+Open:
+
+```text
+http://localhost:3000
+```
+
+## Local Access
+
+For local Minikube/WSL testing, port-forwarding was used:
 
 ```bash
-curl -X POST http://localhost:8080/transactions/transfer \
-  -H "Content-Type: application/json" \
-  -H "X-User-Id: u001" \
-  -d '{"toUserId": "u002", "amount": 50.00, "reference": "rent payment"}'
+kubectl port-forward -n banking svc/frontend 30080:80
+kubectl port-forward -n banking svc/user-service 8000:8000
+kubectl port-forward -n banking svc/transaction-service 8080:8080
+kubectl port-forward -n banking svc/activity-service 8001:8001
 ```
 
-**Check Balance**
+Open:
+
+```text
+http://localhost:30080
+```
+
+For the default Ingress configuration:
+
+```text
+http://bank.local
+```
+
+In WSL/Minikube, direct Windows browser access to the Minikube Ingress IP may fail because of host networking. Port-forwarding was used for local UI evidence. The Ingress remains configured for Kubernetes environments where the host can route to the ingress controller.
+
+## Observability
+
+Prometheus/Grafana was installed with `kube-prometheus-stack`:
 
 ```bash
-curl http://localhost:8080/balance/u001
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --create-namespace
 ```
 
----
-
-### Activity Service — `http://localhost:8001`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/activities/{userId}` | Get last 20 activity log entries |
-
-**Get Activities**
+Access Grafana:
 
 ```bash
-curl http://localhost:8001/activities/u001
+kubectl port-forward -n monitoring svc/monitoring-grafana 3001:80
 ```
 
-Activities are written automatically when the Activity Service consumes transaction events from the Kafka topic `banking-transactions`.
+Open:
 
----
-
-## Environment Variables
-
-The defaults below are pre-configured in `docker-compose.yml`. Override them if running services outside Docker.
-
-### User Service & Activity Service
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://bankuser:bankpass@postgres:5432/bankingdb` | PostgreSQL connection string |
-| `FRONTEND_ORIGIN` | `http://localhost:3000` | CORS allowed origin |
-
-### Transaction Service
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://postgres:5432/bankingdb` | JDBC connection URL |
-| `SPRING_DATASOURCE_USERNAME` | `bankuser` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | `bankpass` | Database password |
-| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:29092` | Kafka broker address |
-| `REDIS_HOST` | `redis` | Redis hostname |
-| `REDIS_PORT` | `6379` | Redis port |
-| `SERVER_PORT` | `8080` | Application port |
-
-### Activity Service
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:29092` | Kafka broker address |
-
----
-
-## Database Schema
-
-Initialised automatically on first startup via `db-init/init.sql`.
-
-```
-users          — id, full_name, email, created_at
-accounts       — user_id (FK), balance, updated_at
-transactions   — id, user_id, transaction_type, amount, reference, created_at
-activities     — id, user_id, activity_type, description, created_at
+```text
+http://localhost:3001
 ```
 
----
-
-## Event Flow
-
-1. A client calls the Transaction Service (deposit / withdraw / transfer).
-2. The Transaction Service writes to PostgreSQL and publishes an event to the Kafka topic `banking-transactions`.
-3. The Activity Service consumes the Kafka event and writes an entry to the `activities` table.
-4. Balance reads are served from Redis cache; the cache is updated on each write.
-
----
-
-## Running Individual Services Locally (without Docker)
-
-### User Service / Activity Service (Python)
+Get Grafana admin password:
 
 ```bash
-cd user-service           # or activity-service
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-DATABASE_URL=postgresql://bankuser:bankpass@localhost:5432/bankingdb \
-  uvicorn app.main:app --reload --port 8000
+kubectl --namespace monitoring get secret monitoring-grafana \
+  -o jsonpath="{.data.admin-password}" | base64 -d ; echo
 ```
 
-### Transaction Service (Java)
+## Metrics Instrumentation
+
+Application metrics:
+
+- User Service exposes `/metrics` using `prometheus-fastapi-instrumentator`
+- Transaction Service exposes `/actuator/prometheus` using Spring Boot Actuator and Micrometer
+- Transaction Service exposes custom business counter `banking_transactions_total{type=...}`
+
+Exporter metrics:
+
+- Redis exporter for cache metrics
+- PostgreSQL exporter for database metrics
+- Kafka exporter for consumer lag and broker metrics
+
+Service discovery:
 
 ```bash
-cd transaction-service
-./mvnw spring-boot:run
+kubectl get servicemonitor -n banking
 ```
 
-Requires Java 17+ and Maven installed locally. Infrastructure (PostgreSQL, Redis, Kafka) must be running separately.
+Custom recording rules:
 
----
+```bash
+kubectl get prometheusrule techbleat-bank-custom-rules -n banking
+```
 
-## CORS
+PromQL rules implemented:
 
-All services are configured to accept cross-origin requests from `http://localhost:3000` and `http://127.0.0.1:3000` to support the companion React frontend.
+- `techbleat:transaction_rate_per_second`
+- `techbleat:http_5xx_rate_per_second`
+- `techbleat:http_request_latency_p95_seconds`
+- `techbleat:http_request_latency_p99_seconds`
+- `techbleat:kafka_consumer_lag`
+- `techbleat:redis_cache_hit_rate`
+- `techbleat:postgres_active_connections`
+- `techbleat:postgres_max_query_duration_seconds`
+
+## Grafana Dashboards
+
+Dashboard exports are stored in:
+
+```text
+dashboards/operations-overview.json
+dashboards/business-metrics.json
+```
+
+Import in Grafana:
+
+```text
+Dashboards -> New -> Import -> Upload dashboard JSON file
+```
+
+Dashboards:
+
+- `Techbleat Bank - Operations Overview`
+- `Techbleat Bank - Business Metrics`
+
+## Alerts
+
+Critical alert definitions are stored in:
+
+```text
+alerts/critical-alerts.yaml
+charts/techbleat-bank/templates/critical-alerts.yaml
+```
+
+Deployed rules:
+
+```bash
+kubectl get prometheusrule techbleat-bank-critical-alerts -n banking
+```
+
+Critical alerts:
+
+- `BankingPodCrashLooping`
+- `BankingDeploymentReplicasUnavailable`
+- `TransactionServiceUnavailable`
+- `BankingKafkaDown`
+- `BankingPostgresDown`
+- `BankingHighKafkaConsumerLag`
+- `BankingHighHttp5xxRate`
+
+## Slack Alert Notifications
+
+Slack receiver config is stored in:
+
+```text
+alerts/slack-alertmanagerconfig.yaml
+alerts/slack-notification-setup.md
+```
+
+The Slack webhook must be stored as a Kubernetes Secret and must not be committed to Git:
+
+```bash
+kubectl create secret generic alertmanager-slack-webhook \
+  -n banking \
+  --from-literal=url='<slack-webhook-url>'
+```
+
+Apply Slack routing:
+
+```bash
+kubectl apply -f alerts/slack-alertmanagerconfig.yaml
+```
+
+Controlled alert test used:
+
+```bash
+kubectl scale deploy/kafka-exporter -n banking --replicas=0
+```
+
+Resolution:
+
+```bash
+kubectl scale deploy/kafka-exporter -n banking --replicas=1
+kubectl rollout status deploy/kafka-exporter -n banking
+```
+
+## Runbooks
+
+Critical alert runbooks are stored under:
+
+```text
+runbooks/
+```
+
+Each runbook includes impact, checks, remediation, and verification steps.
+
+## Screenshot Evidence
+
+Screenshot checklist:
+
+```text
+screenshots/README.md
+```
+
+Command/API evidence collected from the live EKS cluster is stored in:
+
+```text
+evidence/
+```
+
+This includes Kubernetes pod/service/HPA state, ingress HTTP checks, Prometheus target/rule data, Loki query output, and Tempo trace search output. Browser screenshots and the demo video still need to be captured from a graphical browser/recorder.
+
+## CI/CD And Security Gates
+
+GitHub Actions workflows:
+
+```text
+.github/workflows/build-scan-push.yml
+.github/workflows/image-scan.yml
+.github/workflows/terraform-ci.yml
+```
+
+`build-scan-push.yml` is the enterprise promotion path:
+
+```text
+build image from source
+scan local image with Trivy
+push to Public ECR only if the Trivy policy passes
+```
+
+Required GitHub secret:
+
+```text
+AWS_GITHUB_ACTIONS_ROLE_ARN
+```
+
+That role must allow GitHub Actions OIDC to push to Public ECR.
+
+`image-scan.yml` audits already deployed Public ECR images and uploads Trivy table/SARIF reports.
+
+`terraform-ci.yml` runs:
+
+```text
+terraform fmt -check
+terraform init -backend=false
+terraform validate
+checkov Terraform security scan
+```
+
+Expected screenshots:
+
+- Kubernetes pods running
+- Kubernetes services
+- ServiceMonitors and PrometheusRules
+- Grafana Operations dashboard
+- Grafana Business Metrics dashboard
+- alert firing
+- alert resolved
+- UI banking flow
+
+## Security Notes
+
+- Application config is externalised through ConfigMaps.
+- Sensitive database values are stored in Kubernetes Secrets.
+- Slack webhook is stored in a Kubernetes Secret and excluded from Git.
+- Images use versioned tags.
+- Trivy scanning is enforced through GitHub Actions before image push.
+- PostgreSQL data uses a PVC in Kubernetes.
+
+## Known Limitations
+
+- DNS/TLS for a real production domain is not configured yet; current EKS ingress works over HTTP using the AWS load balancer and `Host: bank.local`.
+- The in-cluster Kafka deployment is single-node and suitable for assignment/demo use, not production HA.
+- In-cluster PostgreSQL is suitable for assignment/demo use; production AWS deployments should consider Amazon RDS.
+- Slack webhook must be rotated if exposed.
+- Current Trivy evidence includes findings that should be remediated before promoting new images through the build-scan-push gate.
+
+## Useful Commands
+
+```bash
+helm lint charts/techbleat-bank
+helm template techbleat-bank charts/techbleat-bank --namespace banking
+kubectl get pods -n banking
+kubectl get pods -n monitoring
+kubectl get servicemonitor,prometheusrule -n banking
+```
+
+Prometheus port-forward:
+
+```bash
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090
+```
+
+Alertmanager port-forward:
+
+```bash
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-alertmanager 9093:9093
+```
+
+Grafana port-forward:
+
+```bash
+kubectl port-forward -n monitoring svc/monitoring-grafana 3001:80
+```

@@ -1,0 +1,73 @@
+{
+  "traces": [
+    {
+      "traceID": "ae2add4c4037235d427f6b402700f498",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278409620050175"
+    },
+    {
+      "traceID": "18a11cb144a50fea75dfecf176eb5da1",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278404818663603"
+    },
+    {
+      "traceID": "d4bb73d16c19ae28fb858549383b0f01",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278399619902962"
+    },
+    {
+      "traceID": "57d60bcdd1448749949c41c05ddb8070",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /actuator/prometheus",
+      "startTimeUnixNano": "1783278398452239741",
+      "durationMs": 3
+    },
+    {
+      "traceID": "f86630894a8403109044cbde3c45f608",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /actuator/prometheus",
+      "startTimeUnixNano": "1783278395257895049",
+      "durationMs": 5
+    },
+    {
+      "traceID": "4663f8af4fc093868fb4b1af5efa87fc",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278394819163489"
+    },
+    {
+      "traceID": "f9d8fca110208f21c4a6946bff578bb",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278389619928976"
+    },
+    {
+      "traceID": "d5a8eec1f1e925feb76286fbd66a2cc3",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278385777386771"
+    },
+    {
+      "traceID": "525aa35d03fe546bfa48f7b1d81e2b21",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278384818233357"
+    },
+    {
+      "traceID": "6bc3d95c0dcdebe93f1f5056b30bd05",
+      "rootServiceName": "transaction-service",
+      "rootTraceName": "GET /health",
+      "startTimeUnixNano": "1783278380883522825",
+      "durationMs": 1
+    }
+  ],
+  "metrics": {
+    "inspectedTraces": 12,
+    "inspectedBytes": "54287",
+    "completedJobs": 1,
+    "totalJobs": 1
+  }
+}

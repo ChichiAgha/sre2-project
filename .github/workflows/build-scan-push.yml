@@ -1,0 +1,115 @@
+name: Build Scan And Push Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to publish after scans pass
+        required: true
+        default: v2.0.4
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-scan-push.yml"
+      - "techbleat-global-bank-backend/**"
+      - "techbleat-global-bank-frontend/**"
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_PUBLIC_REGION: us-east-1
+  ECR_PUBLIC_ALIAS: k6r5h9u0
+
+jobs:
+  build-scan-push:
+    name: Build scan push - ${{ matrix.service.name }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: frontend
+            context: techbleat-global-bank-frontend
+            image: techbleat-global-bank-frontend
+          - name: user-service
+            context: techbleat-global-bank-backend/user-service
+            image: techbleat-global-bank-user-service
+          - name: transaction-service
+            context: techbleat-global-bank-backend/transaction-service
+            image: techbleat-global-bank-transaction-service
+          - name: activity-service
+            context: techbleat-global-bank-backend/activity-service
+            image: techbleat-global-bank-activity-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=sha-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local image for scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service.context }}
+          platforms: linux/amd64
+          load: true
+          tags: local/${{ matrix.service.image }}:${{ steps.vars.outputs.tag }}
+
+      - name: Trivy scan local image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: local/${{ matrix.service.image }}:${{ steps.vars.outputs.tag }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          output: trivy-${{ matrix.service.name }}-${{ steps.vars.outputs.tag }}.txt
+          exit-code: "1"
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-${{ matrix.service.name }}-${{ steps.vars.outputs.tag }}
+          path: trivy-${{ matrix.service.name }}-${{ steps.vars.outputs.tag }}.txt
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR Public
+        if: success()
+        run: |
+          aws ecr-public get-login-password --region "$ECR_PUBLIC_REGION" \
+            | docker login --username AWS --password-stdin public.ecr.aws
+
+      - name: Tag scanned image for Public ECR
+        if: success()
+        run: |
+          docker tag \
+            local/${{ matrix.service.image }}:${{ steps.vars.outputs.tag }} \
+            public.ecr.aws/${ECR_PUBLIC_ALIAS}/${{ matrix.service.image }}:${{ steps.vars.outputs.tag }}
+
+      - name: Push scanned image to Public ECR
+        if: success()
+        run: |
+          docker push public.ecr.aws/${ECR_PUBLIC_ALIAS}/${{ matrix.service.image }}:${{ steps.vars.outputs.tag }}

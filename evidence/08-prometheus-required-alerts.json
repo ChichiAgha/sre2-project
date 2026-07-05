@@ -1,0 +1,35 @@
+{
+  "name": "HighErrorRate",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "SlowTransactions",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "KafkaConsumerLag",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "PodCrashLooping",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "LowDiskOnPostgres",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "ServiceDown",
+  "health": "ok",
+  "state": "inactive"
+}
+{
+  "name": "HPAMaxReplicasReached",
+  "health": "ok",
+  "state": "inactive"
+}

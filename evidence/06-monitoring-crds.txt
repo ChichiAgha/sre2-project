@@ -1,0 +1,10 @@
+NAME                                                       AGE
+servicemonitor.monitoring.coreos.com/kafka-exporter        5h14m
+servicemonitor.monitoring.coreos.com/postgres-exporter     5h14m
+servicemonitor.monitoring.coreos.com/redis-exporter        5h14m
+servicemonitor.monitoring.coreos.com/transaction-service   5h14m
+servicemonitor.monitoring.coreos.com/user-service          5h14m
+
+NAME                                                                  AGE
+prometheusrule.monitoring.coreos.com/techbleat-bank-critical-alerts   5h14m
+prometheusrule.monitoring.coreos.com/techbleat-bank-custom-rules      5h14m

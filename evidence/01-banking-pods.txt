@@ -1,0 +1,12 @@
+NAME                                   READY   STATUS    RESTARTS   AGE     IP            NODE                                        NOMINATED NODE   READINESS GATES
+activity-service-9b477bd-sxfjl         1/1     Running   0          6h48m   10.20.1.125   ip-10-20-1-163.eu-west-2.compute.internal   <none>           <none>
+frontend-64866fd7b-6xknf               1/1     Running   0          6h48m   10.20.2.120   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+kafka-69c9796b5c-cqnp7                 1/1     Running   0          6h48m   10.20.2.242   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+kafka-exporter-849f78b6-jkz2p          1/1     Running   0          5h14m   10.20.2.109   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+postgres-0                             1/1     Running   0          6h48m   10.20.2.43    ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+postgres-exporter-7dd5bb864-k6st6      1/1     Running   0          5h14m   10.20.2.61    ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+redis-6d8c474696-pps5p                 1/1     Running   0          6h48m   10.20.2.121   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+redis-exporter-79754946c8-z8k6t        1/1     Running   0          5h14m   10.20.2.159   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>
+transaction-service-656595cbb5-bmrpz   1/1     Running   0          4h43m   10.20.3.173   ip-10-20-3-65.eu-west-2.compute.internal    <none>           <none>
+transaction-service-656595cbb5-x9pbq   1/1     Running   0          4h42m   10.20.3.133   ip-10-20-3-65.eu-west-2.compute.internal    <none>           <none>
+user-service-6d7896445b-vbhlt          1/1     Running   0          6h48m   10.20.2.185   ip-10-20-2-126.eu-west-2.compute.internal   <none>           <none>

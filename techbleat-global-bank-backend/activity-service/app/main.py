@@ -1,12 +1,36 @@
 import json
+import logging
 import os
+import sys
 import threading
 import time
 
 from confluent_kafka import Consumer
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, text
+
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        payload = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            "level": record.levelname,
+            "service": "activity-service",
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        for key in ("method", "path", "status_code", "duration_ms", "topic", "user_id", "activity_type"):
+            value = getattr(record, key, None)
+            if value is not None:
+                payload[key] = value
+        return json.dumps(payload)
+
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), handlers=[handler], force=True)
+logger = logging.getLogger("activity-service")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
@@ -26,6 +50,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = round((time.perf_counter() - start) * 1000, 2)
+    logger.info(
+        "http_request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": duration_ms,
+        },
+    )
+    return response
 
 
 def kafka_consumer_loop():
@@ -71,7 +112,16 @@ def kafka_consumer_loop():
                         "description": description,
                     },
                 )
+            logger.info(
+                "activity_recorded",
+                extra={
+                    "topic": "banking-transactions",
+                    "user_id": user_id,
+                    "activity_type": activity_type,
+                },
+            )
         except Exception:
+            logger.exception("activity_consumer_error")
             time.sleep(1)
 
 

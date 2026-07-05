@@ -1,0 +1,12 @@
+  target
+  .mvn
+  *.iml
+  .idea
+  .vscode
+  .env
+  .env.*
+  .git
+  .gitignore
+  Dockerfile
+  README.md
+  *.log

@@ -1,1 +1,6 @@
+Full_Chat_History.md
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.terraform/
 .claude/

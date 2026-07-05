@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: frontend
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+      {{- include "techbleat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: frontend
+        tier: frontend
+        {{- include "techbleat.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "techbleat.serviceAccountName" . }}
+      containers:
+        - name: frontend
+          image: {{ .Values.images.frontend | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: frontend-runtime-config
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+      volumes:
+        - name: frontend-runtime-config
+          configMap:
+            name: frontend-runtime-config

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-runtime-config
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: frontend
+data:
+  config.js: |
+    window.__APP_CONFIG__ = {
+      USER_API_URL: {{ .Values.frontend.runtimeConfig.userApiUrl | quote }},
+      TX_API_URL: {{ .Values.frontend.runtimeConfig.transactionApiUrl | quote }},
+      ACTIVITY_API_URL: {{ .Values.frontend.runtimeConfig.activityApiUrl | quote }}
+    };

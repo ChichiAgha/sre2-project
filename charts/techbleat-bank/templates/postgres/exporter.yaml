@@ -1,0 +1,95 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.exporters.postgres.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: monitoring
+    app.kubernetes.io/component: postgres-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: postgres-exporter
+      {{- include "techbleat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: postgres-exporter
+        tier: monitoring
+        {{- include "techbleat.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "techbleat.serviceAccountName" . }}
+      containers:
+        - name: postgres-exporter
+          image: {{ .Values.images.postgresExporter | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          command:
+            - sh
+            - -c
+            - >
+              export DATA_SOURCE_NAME="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:{{ .Values.postgres.service.port }}/${POSTGRES_DB}?sslmode=disable";
+              /bin/postgres_exporter
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.monitoring.exporters.postgres.port }}
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: monitoring
+    app.kubernetes.io/component: postgres-exporter
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: {{ .Values.monitoring.exporters.postgres.port }}
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/component: postgres-exporter
+    {{- include "techbleat.selectorLabels" . | nindent 4 }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-exporter
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    release: {{ .Values.monitoring.prometheusReleaseLabel | quote }}
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "techbleat.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: postgres-exporter
+  namespaceSelector:
+    matchNames:
+      - {{ include "techbleat.namespace" . }}
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+{{- end }}

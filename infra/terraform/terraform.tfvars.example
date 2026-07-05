@@ -1,0 +1,11 @@
+aws_region         = "eu-west-2"
+cluster_name       = "techbleat-banking-app"
+kubernetes_version = "1.34"
+environment        = "dev"
+enable_platform    = false
+
+banking_secret_values = {
+  POSTGRES_PASSWORD          = "replace-with-strong-password"
+  DATABASE_URL               = "postgresql://bankuser:replace-with-strong-password@postgres:5432/bankingdb"
+  SPRING_DATASOURCE_PASSWORD = "replace-with-strong-password"
+}

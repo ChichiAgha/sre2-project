@@ -1,8 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 
-const USER_API = "http://localhost:8000";
-const TX_API = "http://localhost:8080";
-const ACTIVITY_API = "http://localhost:8001";
+// const USER_API = "http://localhost:8000";
+// const TX_API = "http://localhost:8080";
+// const ACTIVITY_API = "http://localhost:8001";
+
+
+  const appConfig = window.__APP_CONFIG__ || {};
+
+  const USER_API =
+    appConfig.USER_API_URL ||
+    import.meta.env.VITE_USER_API_URL ||
+    "http://localhost:8000";
+
+  const TX_API =
+    appConfig.TX_API_URL ||
+    import.meta.env.VITE_TX_API_URL ||
+    "http://localhost:8080";
+
+  const ACTIVITY_API =
+    appConfig.ACTIVITY_API_URL ||
+    import.meta.env.VITE_ACTIVITY_API_URL ||
+    "http://localhost:8001";
+
 
 const currency = new Intl.NumberFormat("en-GB", {
   style: "currency",

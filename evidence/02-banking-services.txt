@@ -1,0 +1,11 @@
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                        AGE     SELECTOR
+activity-service      ClusterIP   172.20.213.183   <none>        8001/TCP                       8h      app.kubernetes.io/component=activity-service,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+frontend              ClusterIP   172.20.174.127   <none>        80/TCP                         8h      app.kubernetes.io/component=frontend,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+kafka                 ClusterIP   172.20.241.119   <none>        29092/TCP,9092/TCP,29093/TCP   8h      app.kubernetes.io/component=kafka,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+kafka-exporter        ClusterIP   172.20.128.141   <none>        9308/TCP                       5h14m   app.kubernetes.io/component=kafka-exporter,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+postgres              ClusterIP   172.20.36.9      <none>        5432/TCP                       8h      app.kubernetes.io/component=postgres,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+postgres-exporter     ClusterIP   172.20.175.226   <none>        9187/TCP                       5h14m   app.kubernetes.io/component=postgres-exporter,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+redis                 ClusterIP   172.20.24.203    <none>        6379/TCP                       8h      app.kubernetes.io/component=redis,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+redis-exporter        ClusterIP   172.20.57.88     <none>        9121/TCP                       5h14m   app.kubernetes.io/component=redis-exporter,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+transaction-service   ClusterIP   172.20.60.94     <none>        8080/TCP                       8h      app.kubernetes.io/component=transaction-service,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank
+user-service          ClusterIP   172.20.249.83    <none>        8000/TCP                       8h      app.kubernetes.io/component=user-service,app.kubernetes.io/instance=techbleat-bank,app.kubernetes.io/name=techbleat-bank

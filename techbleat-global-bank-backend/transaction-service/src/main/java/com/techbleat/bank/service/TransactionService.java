@@ -4,6 +4,8 @@ import com.techbleat.bank.model.Account;
 import com.techbleat.bank.model.BankTransaction;
 import com.techbleat.bank.repo.AccountRepository;
 import com.techbleat.bank.repo.BankTransactionRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,14 @@ public class TransactionService {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
+    private final MeterRegistry meterRegistry;
+
     private final String redisHost = System.getenv().getOrDefault("REDIS_HOST", "redis");
     private final int redisPort = Integer.parseInt(System.getenv().getOrDefault("REDIS_PORT", "6379"));
+
+    public TransactionService(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
 
     public Map<String, Object> deposit(String userId, Double amount) {
         validateAmount(amount);
@@ -39,6 +47,7 @@ public class TransactionService {
         saveTransaction(userId, "DEPOSIT", amount, "cash deposit");
         publishEvent(userId, "DEPOSIT", amount);
         cacheBalance(userId, account.getBalance());
+        recordTransaction("deposit");
 
         return Map.of("message", "Deposit successful", "balance", account.getBalance());
     }
@@ -57,6 +66,7 @@ public class TransactionService {
         saveTransaction(userId, "WITHDRAW", amount, "cash withdrawal");
         publishEvent(userId, "WITHDRAW", amount);
         cacheBalance(userId, account.getBalance());
+        recordTransaction("withdraw");
 
         return Map.of("message", "Withdrawal successful", "balance", account.getBalance());
     }
@@ -85,6 +95,7 @@ public class TransactionService {
 
         cacheBalance(fromUserId, fromAccount.getBalance());
         cacheBalance(toUserId, toAccount.getBalance());
+        recordTransaction("transfer");
 
         return Map.of(
                 "message", "Transfer successful",
@@ -146,5 +157,13 @@ public class TransactionService {
             jedis.set("balance:" + userId, String.valueOf(balance));
         } catch (Exception ignored) {
         }
+    }
+
+    private void recordTransaction(String type) {
+        Counter.builder("banking_transactions_total")
+                .description("Completed banking transactions by type")
+                .tag("type", type)
+                .register(meterRegistry)
+                .increment();
     }
 }

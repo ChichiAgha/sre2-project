@@ -1,0 +1,173 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: techbleat-bank-critical-alerts
+  namespace: banking
+  labels:
+    release: monitoring
+    app.kubernetes.io/name: techbleat-bank
+    app: techbleat-bank
+    environment: dev
+spec:
+  groups:
+    - name: techbleat-bank.critical
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            (
+              sum by (service) (rate(http_server_requests_seconds_count{namespace="banking"}[5m]))
+              > 0
+            )
+            and
+            (
+              sum by (service) (rate(http_server_requests_seconds_count{namespace="banking",status=~"5.."}[5m]))
+              /
+              sum by (service) (rate(http_server_requests_seconds_count{namespace="banking"}[5m]))
+              > 0.05
+            )
+          for: 5m
+          labels:
+            severity: critical
+            service: backend
+          annotations:
+            summary: HTTP 5xx error rate is above 5%
+            description: One or more banking services has more than 5% HTTP 5xx responses over 5 minutes.
+            runbook_url: runbooks/banking-high-http-5xx-rate.md
+        - alert: SlowTransactions
+          expr: techbleat:http_request_latency_p95_seconds{service="transaction-service"} > 2
+          for: 5m
+          labels:
+            severity: warning
+            service: transaction-service
+          annotations:
+            summary: Transaction service P95 latency is above 2 seconds
+            description: Transaction service P95 request latency has exceeded 2 seconds for 5 minutes.
+            runbook_url: runbooks/transaction-service-unavailable.md
+        - alert: KafkaConsumerLag
+          expr: techbleat:kafka_consumer_lag > 100
+          for: 3m
+          labels:
+            severity: warning
+            service: activity-service
+          annotations:
+            summary: Kafka consumer lag is above 100 messages
+            description: Activity service consumer lag on banking-transactions is above 100 messages for 3 minutes.
+            runbook_url: runbooks/banking-high-kafka-consumer-lag.md
+        - alert: PodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="banking"}[10m]) > 3
+          for: 5m
+          labels:
+            severity: critical
+            service: platform
+          annotations:
+            summary: Banking pod is crash-looping
+            description: A container in the banking namespace restarted more than 3 times in 10 minutes.
+            runbook_url: runbooks/banking-pod-crashlooping.md
+        - alert: LowDiskOnPostgres
+          expr: |
+            max by (persistentvolumeclaim) (
+              kubelet_volume_stats_used_bytes{namespace="banking",persistentvolumeclaim=~"postgres-data-.*"}
+              /
+              kubelet_volume_stats_capacity_bytes{namespace="banking",persistentvolumeclaim=~"postgres-data-.*"}
+            ) > 0.80
+          for: 5m
+          labels:
+            severity: warning
+            service: postgres
+          annotations:
+            summary: PostgreSQL PVC usage is above 80%
+            description: PostgreSQL persistent volume usage is above 80%.
+            runbook_url: runbooks/banking-postgres-down.md
+        - alert: ServiceDown
+          expr: up{namespace="banking"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: platform
+          annotations:
+            summary: A banking Prometheus target is down
+            description: Prometheus has a missing or down scrape target in the banking namespace.
+            runbook_url: runbooks/service-down.md
+        - alert: HPAMaxReplicasReached
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="banking",horizontalpodautoscaler="transaction-service"}
+            >=
+            kube_horizontalpodautoscaler_spec_max_replicas{namespace="banking",horizontalpodautoscaler="transaction-service"}
+          for: 5m
+          labels:
+            severity: warning
+            service: transaction-service
+          annotations:
+            summary: Transaction Service HPA reached max replicas
+            description: Transaction Service is running at its configured HPA maximum replica count.
+            runbook_url: runbooks/transaction-service-unavailable.md
+        - alert: BankingPodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="banking"}[10m]) > 3
+          for: 5m
+          labels:
+            severity: critical
+            service: platform
+          annotations:
+            summary: Banking pod is crash-looping
+            description: A container in the banking namespace restarted more than 3 times in 10 minutes.
+            runbook_url: runbooks/banking-pod-crashlooping.md
+        - alert: BankingDeploymentReplicasUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="banking"} < kube_deployment_spec_replicas{namespace="banking"}
+          for: 5m
+          labels:
+            severity: critical
+            service: platform
+          annotations:
+            summary: Banking deployment has unavailable replicas
+            description: One or more banking deployments have fewer available replicas than desired.
+            runbook_url: runbooks/banking-deployment-replicas-unavailable.md
+        - alert: TransactionServiceUnavailable
+          expr: up{namespace="banking",service="transaction-service"} == 0 or absent(up{namespace="banking",service="transaction-service"})
+          for: 2m
+          labels:
+            severity: critical
+            service: transaction-service
+          annotations:
+            summary: Transaction service is unavailable
+            description: Prometheus cannot scrape the transaction-service target.
+            runbook_url: runbooks/transaction-service-unavailable.md
+        - alert: BankingKafkaDown
+          expr: up{namespace="banking",service="kafka-exporter"} == 0 or absent(up{namespace="banking",service="kafka-exporter"})
+          for: 3m
+          labels:
+            severity: critical
+            service: kafka
+          annotations:
+            summary: Kafka exporter or Kafka broker metrics are unavailable
+            description: Kafka exporter is down or cannot expose Kafka metrics.
+            runbook_url: runbooks/banking-kafka-down.md
+        - alert: BankingPostgresDown
+          expr: pg_up{namespace="banking"} == 0 or absent(pg_up{namespace="banking"})
+          for: 3m
+          labels:
+            severity: critical
+            service: postgres
+          annotations:
+            summary: PostgreSQL is unavailable
+            description: Postgres exporter reports the database as down, or pg_up is absent.
+            runbook_url: runbooks/banking-postgres-down.md
+        - alert: BankingHighKafkaConsumerLag
+          expr: techbleat:kafka_consumer_lag > 100
+          for: 3m
+          labels:
+            severity: critical
+            service: activity-service
+          annotations:
+            summary: Kafka consumer lag is high
+            description: Activity service consumer lag on banking-transactions is above threshold.
+            runbook_url: runbooks/banking-high-kafka-consumer-lag.md
+        - alert: BankingHighHttp5xxRate
+          expr: techbleat:http_5xx_rate_per_second > 0.1
+          for: 5m
+          labels:
+            severity: critical
+            service: backend
+          annotations:
+            summary: HTTP 5xx rate is high
+            description: Backend service error rate is above 0.1 requests per second.
+            runbook_url: runbooks/banking-high-http-5xx-rate.md

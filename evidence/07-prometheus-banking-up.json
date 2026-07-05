@@ -1,0 +1,104 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "redis-exporter",
+          "endpoint": "metrics",
+          "instance": "10.20.2.159:9121",
+          "job": "redis-exporter",
+          "namespace": "banking",
+          "pod": "redis-exporter-79754946c8-z8k6t",
+          "service": "redis-exporter"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "postgres-exporter",
+          "endpoint": "metrics",
+          "instance": "10.20.2.61:9187",
+          "job": "postgres-exporter",
+          "namespace": "banking",
+          "pod": "postgres-exporter-7dd5bb864-k6st6",
+          "service": "postgres-exporter"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "kafka-exporter",
+          "endpoint": "metrics",
+          "instance": "10.20.2.109:9308",
+          "job": "kafka-exporter",
+          "namespace": "banking",
+          "pod": "kafka-exporter-849f78b6-jkz2p",
+          "service": "kafka-exporter"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "user-service",
+          "endpoint": "http",
+          "instance": "10.20.2.185:8000",
+          "job": "user-service",
+          "namespace": "banking",
+          "pod": "user-service-6d7896445b-vbhlt",
+          "service": "user-service"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "transaction-service",
+          "endpoint": "http",
+          "instance": "10.20.3.173:8080",
+          "job": "transaction-service",
+          "namespace": "banking",
+          "pod": "transaction-service-656595cbb5-bmrpz",
+          "service": "transaction-service"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "transaction-service",
+          "endpoint": "http",
+          "instance": "10.20.3.133:8080",
+          "job": "transaction-service",
+          "namespace": "banking",
+          "pod": "transaction-service-656595cbb5-x9pbq",
+          "service": "transaction-service"
+        },
+        "value": [
+          1783278940.165,
+          "1"
+        ]
+      }
+    ]
+  }
+}

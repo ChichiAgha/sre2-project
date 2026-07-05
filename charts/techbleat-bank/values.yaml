@@ -1,0 +1,172 @@
+global:
+  environment: dev
+  imagePullPolicy: IfNotPresent
+
+namespace:
+  create: true
+  name: banking
+
+labels:
+  app: techbleat-bank
+  version: v1.2.1
+
+images:
+  frontend: chigoldd/techbleat-frontend:v1.2.2
+  userService: chigoldd/techbleat-user-service:v1.3.1
+  transactionService: chigoldd/techbleat-transaction-service:v1.3.1
+  activityService: chigoldd/techbleat-activity-service:v1.2.2
+  postgres: postgres:15
+  redis: redis:7
+  kafka: confluentinc/cp-kafka:8.1.1
+  postgresExporter: prometheuscommunity/postgres-exporter:v0.15.0
+  redisExporter: oliver006/redis_exporter:v1.62.0
+  kafkaExporter: danielqsj/kafka-exporter:v1.7.0
+
+frontend:
+  replicas: 1
+  service:
+    port: 80
+  runtimeConfig:
+    userApiUrl: http://bank.local/api/users
+    transactionApiUrl: http://bank.local/api/transactions
+    activityApiUrl: http://bank.local/api/activities
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 70
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+userService:
+  replicas: 1
+  service:
+    port: 8000
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 70
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+transactionService:
+  replicas: 2
+  service:
+    port: 8080
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+activityService:
+  replicas: 1
+  service:
+    port: 8001
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 70
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+postgres:
+  service:
+    port: 5432
+  database: bankingdb
+  username: bankuser
+  password: bankpass
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+redis:
+  service:
+    port: 6379
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+kafka:
+  service:
+    internalPort: 29092
+    externalPort: 9092
+    controllerPort: 29093
+  clusterId: MkU3OEVBNTcwNTJENDM2Qk
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1500m
+      memory: 2Gi
+
+config:
+  frontendOrigin: http://bank.local
+  springJpaHibernateDdlAuto: update
+
+ingress:
+  enabled: true
+  className: nginx
+  host: bank.local
+  annotations: {}
+
+serviceAccount:
+  create: true
+  name: ""
+
+monitoring:
+  enabled: true
+  prometheusReleaseLabel: monitoring
+  exporters:
+    postgres:
+      enabled: true
+      port: 9187
+    redis:
+      enabled: true
+      port: 9121
+    kafka:
+      enabled: true
+      port: 9308
+
+tracing:
+  enabled: false
+  serviceName: transaction-service
+  otlpEndpoint: http://tempo.monitoring.svc.cluster.local:4318
+  otlpProtocol: http/protobuf

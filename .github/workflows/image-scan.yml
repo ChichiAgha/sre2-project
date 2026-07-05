@@ -1,0 +1,84 @@
+name: Deployed Image Audit Scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/image-scan.yml"
+      - "techbleat-global-bank-backend/**"
+      - "techbleat-global-bank-frontend/**"
+      - "charts/techbleat-bank/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/image-scan.yml"
+      - "techbleat-global-bank-backend/**"
+      - "techbleat-global-bank-frontend/**"
+      - "charts/techbleat-bank/**"
+
+jobs:
+  trivy-scan:
+    name: Trivy scan - ${{ matrix.image.name }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: frontend
+            ref: public.ecr.aws/k6r5h9u0/techbleat-global-bank-frontend:v2.0.2
+          - name: user-service
+            ref: public.ecr.aws/k6r5h9u0/techbleat-global-bank-user-service:v2.0.2
+          - name: transaction-service
+            ref: public.ecr.aws/k6r5h9u0/techbleat-global-bank-transaction-service:v2.0.3
+          - name: activity-service
+            ref: public.ecr.aws/k6r5h9u0/techbleat-global-bank-activity-service:v2.0.2
+
+    steps:
+      - name: Run Trivy table scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: "${{ matrix.image.ref }}"
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          output: trivy-${{ matrix.image.name }}.txt
+          exit-code: "0"
+
+      - name: Upload Trivy table report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-${{ matrix.image.name }}
+          path: trivy-${{ matrix.image.name }}.txt
+
+      - name: Run Trivy SARIF scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: "${{ matrix.image.ref }}"
+          format: sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          output: trivy-${{ matrix.image.name }}.sarif
+          exit-code: "0"
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-${{ matrix.image.name }}.sarif
+
+      - name: Enforce critical vulnerability gate
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: "${{ matrix.image.ref }}"
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

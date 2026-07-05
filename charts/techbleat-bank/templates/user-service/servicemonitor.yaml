@@ -1,0 +1,24 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: user-service
+  namespace: {{ include "techbleat.namespace" . }}
+  labels:
+    release: {{ .Values.monitoring.prometheusReleaseLabel | quote }}
+    {{- include "techbleat.labels" . | nindent 4 }}
+    tier: backend
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "techbleat.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: user-service
+  namespaceSelector:
+    matchNames:
+      - {{ include "techbleat.namespace" . }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+{{- end }}

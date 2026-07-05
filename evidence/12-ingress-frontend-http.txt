@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Date: Sun, 05 Jul 2026 19:16:03 GMT
+Content-Type: text/html
+Content-Length: 445
+Connection: keep-alive
+Last-Modified: Sun, 05 Jul 2026 11:26:32 GMT
+ETag: "6a4a3f68-1bd"
+Accept-Ranges: bytes

@@ -1,0 +1,122 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {
+          "component": "activity-service",
+          "filename": "/var/log/pods/banking_activity-service-9b477bd-sxfjl_21d7b8e1-62d6-4864-8353-fdda5999857b/activity-service/0.log",
+          "instance": "techbleat-bank",
+          "node_name": "ip-10-20-1-163.eu-west-2.compute.internal",
+          "stream": "stdout",
+          "app": "techbleat-bank",
+          "job": "banking/techbleat-bank",
+          "namespace": "banking",
+          "pod": "activity-service-9b477bd-sxfjl",
+          "container": "activity-service"
+        },
+        "values": [
+          [
+            "1783278961966186749",
+            "INFO:     10.20.1.163:37580 - \"GET /health HTTP/1.1\" 200 OK"
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "job": "banking/techbleat-bank",
+          "pod": "frontend-64866fd7b-6xknf",
+          "app": "techbleat-bank",
+          "filename": "/var/log/pods/banking_frontend-64866fd7b-6xknf_4a5407ff-5677-4c28-a0fe-ad771929a13f/frontend/0.log",
+          "instance": "techbleat-bank",
+          "node_name": "ip-10-20-2-126.eu-west-2.compute.internal",
+          "stream": "stdout",
+          "component": "frontend",
+          "container": "frontend",
+          "namespace": "banking"
+        },
+        "values": [
+          [
+            "1783278963028054405",
+            "10.20.3.138 - - [05/Jul/2026:19:16:03 +0000] \"HEAD / HTTP/1.1\" 200 0 \"-\" \"curl/8.5.0\" \"10.20.3.65\""
+          ]
+        ]
+      },
+      {
+        "stream": {
+          "namespace": "banking",
+          "stream": "stdout",
+          "component": "user-service",
+          "container": "user-service",
+          "filename": "/var/log/pods/banking_user-service-6d7896445b-vbhlt_93a5f90f-d5b4-4adc-9d29-7247fa1ac3e0/user-service/0.log",
+          "instance": "techbleat-bank",
+          "app": "techbleat-bank",
+          "job": "banking/techbleat-bank",
+          "node_name": "ip-10-20-2-126.eu-west-2.compute.internal",
+          "pod": "user-service-6d7896445b-vbhlt"
+        },
+        "values": [
+          [
+            "1783278963093443107",
+            "INFO:     10.20.3.138:56762 - \"GET /health HTTP/1.1\" 200 OK"
+          ],
+          [
+            "1783278960488944079",
+            "INFO:     10.20.2.126:47572 - \"GET /health HTTP/1.1\" 200 OK"
+          ],
+          [
+            "1783278959938831006",
+            "INFO:     10.20.2.126:40980 - \"GET /health HTTP/1.1\" 200 OK"
+          ]
+        ]
+      }
+    ],
+    "stats": {
+      "summary": {
+        "bytesProcessedPerSecond": 112318887,
+        "linesProcessedPerSecond": 1196187,
+        "totalBytesProcessed": 505074,
+        "totalLinesProcessed": 5379,
+        "execTime": 0.004496786,
+        "queueTime": 0.000122348,
+        "subqueries": 1,
+        "totalEntriesReturned": 5
+      },
+      "querier": {
+        "store": {
+          "totalChunksRef": 0,
+          "totalChunksDownloaded": 0,
+          "chunksDownloadTime": 0,
+          "chunk": {
+            "headChunkBytes": 0,
+            "headChunkLines": 0,
+            "decompressedBytes": 0,
+            "decompressedLines": 0,
+            "compressedBytes": 0,
+            "totalDuplicates": 0
+          }
+        }
+      },
+      "ingester": {
+        "totalReached": 1,
+        "totalChunksMatched": 4,
+        "totalBatches": 1,
+        "totalLinesSent": 5,
+        "store": {
+          "totalChunksRef": 6,
+          "totalChunksDownloaded": 6,
+          "chunksDownloadTime": 218880,
+          "chunk": {
+            "headChunkBytes": 111428,
+            "headChunkLines": 1412,
+            "decompressedBytes": 393646,
+            "decompressedLines": 3967,
+            "compressedBytes": 45681,
+            "totalDuplicates": 0
+          }
+        }
+      }
+    }
+  }
+}
