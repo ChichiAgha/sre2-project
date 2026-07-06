@@ -79,3 +79,21 @@ variable "node_max_size" {
   type        = number
   default     = 4
 }
+
+variable "github_owner" {
+  description = "GitHub account or organisation that owns the capstone repository."
+  type        = string
+  default     = "ChichiAgha"
+}
+
+variable "github_repo" {
+  description = "GitHub repository allowed to assume the CI/CD IAM role."
+  type        = string
+  default     = "sre2-project"
+}
+
+variable "github_actions_role_name" {
+  description = "IAM role name used by GitHub Actions OIDC to push scanned images to Public ECR."
+  type        = string
+  default     = "techbleat-github-actions-ecr"
+}

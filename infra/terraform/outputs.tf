@@ -17,3 +17,8 @@ output "external_secrets_role_arn" {
   description = "IAM role ARN assumed by External Secrets Operator."
   value       = aws_iam_role.external_secrets.arn
 }
+
+output "github_actions_role_arn" {
+  description = "IAM role ARN to store in the GitHub Actions secret AWS_GITHUB_ACTIONS_ROLE_ARN."
+  value       = aws_iam_role.github_actions_ecr.arn
+}
