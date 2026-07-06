@@ -1,4 +1,5 @@
 Full_Chat_History.md
+IMPLEMENTATION.md
 *.tfstate
 *.tfstate.*
 terraform.tfvars
