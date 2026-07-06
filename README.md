@@ -23,6 +23,7 @@ EKS cluster: destroyed
 Application: not currently running
 Observability stack: not currently running
 Terraform state: empty after destroy
+Public ECR image repositories: deleted
 ```
 
 The repository still contains the code needed to recreate the environment. The command/API evidence in `evidence/` was collected while the EKS deployment was live.
@@ -41,7 +42,7 @@ The application includes:
 | Requirement | Location |
 |---|---|
 | Kubernetes manifests / Helm chart | `charts/techbleat-bank/` |
-| Container images with versioned tags | Public ECR image URLs below |
+| Container images with versioned tags | Historical Public ECR image references below; repositories were later deleted during cleanup |
 | Grafana Operations dashboard JSON | `dashboards/operations-overview.json` |
 | Grafana Business Metrics dashboard JSON | `dashboards/business-metrics.json` |
 | Prometheus alert definitions | `alerts/critical-alerts.yaml`, `charts/techbleat-bank/templates/critical-alerts.yaml` |
@@ -64,7 +65,7 @@ This section maps the assignment requirements to repository deliverables.
 | Capstone area | Requirement | Evidence / implementation |
 |---|---|---|
 | Containerisation | Production Dockerfiles for all app components | `techbleat-global-bank-frontend/Dockerfile`, backend service Dockerfiles |
-| Image registry | Versioned image tags, not `latest` | Public ECR `v2.x` image references in this README and Helm values |
+| Image registry | Versioned image tags, not `latest` | Public ECR `v2.x` image references captured below and in Helm values |
 | Image security | Trivy/Snyk scan evidence | `security/trivy/`, `.github/workflows/build-scan-push.yml`, `.github/workflows/image-scan.yml` |
 | Kubernetes workloads | Deployments/StatefulSets for app and dependencies | `charts/techbleat-bank/templates/` |
 | Services and Ingress | ClusterIP services and frontend/API routing | `charts/techbleat-bank/templates/*/service.yaml`, `charts/techbleat-bank/templates/frontend/ingress.yaml` |
@@ -84,13 +85,20 @@ This section maps the assignment requirements to repository deliverables.
 
 ## Container Images
 
-Application images are published to Public ECR:
+During the live deployment, application images were published to Public ECR:
 
 ```text
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-frontend:v2.0.2
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-user-service:v2.0.2
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-transaction-service:v2.0.3
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-activity-service:v2.0.2
+```
+
+Cleanup status:
+
+```text
+The Public ECR repositories above were deleted after evidence collection.
+Recreate/re-push images through the CI/CD workflow before redeploying.
 ```
 
 Infrastructure images are pulled from public registries:
@@ -509,6 +517,7 @@ Expected screenshots:
 ## Known Limitations
 
 - The AWS/EKS environment has been destroyed to stop costs. Recreate it before attempting live browser, Grafana, Prometheus, Loki, or Tempo access.
+- The Public ECR image repositories were deleted during cleanup. Rebuild and push images before a fresh deployment.
 - DNS/TLS for a real production domain is not configured yet; current EKS ingress works over HTTP using the AWS load balancer and `Host: bank.local`.
 - The in-cluster Kafka deployment is single-node and suitable for assignment/demo use, not production HA.
 - In-cluster PostgreSQL is suitable for assignment/demo use; production AWS deployments should consider Amazon RDS.
