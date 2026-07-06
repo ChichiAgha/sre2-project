@@ -2,6 +2,31 @@
 
 Techbleat Global Bank is a microservices banking platform deployed on AWS EKS with Docker, Kubernetes, Helm, Prometheus, Grafana, Alertmanager, Loki, Tempo, and Slack notifications.
 
+This repository is the public capstone deliverable. It contains the infrastructure code, Helm chart, CI/CD workflows, dashboards, alert definitions, runbooks, and deployment evidence required by the project brief.
+
+Private learning notes are intentionally excluded from Git:
+
+```text
+IMPLEMENTATION.md
+```
+
+That local file is ignored because it contains personal learning notes and detailed working history. Public evidence and project-facing documentation are kept in this README, `evidence/`, `screenshots/`, `dashboards/`, `alerts/`, and `runbooks/`.
+
+## Current Environment Status
+
+The EKS environment was successfully deployed, verified, and evidence was captured. It was later torn down on request to stop AWS costs.
+
+Current live status:
+
+```text
+EKS cluster: destroyed
+Application: not currently running
+Observability stack: not currently running
+Terraform state: empty after destroy
+```
+
+The repository still contains the code needed to recreate the environment. The command/API evidence in `evidence/` was collected while the EKS deployment was live.
+
 The application includes:
 
 - Frontend: React/Vite served by Nginx
@@ -21,7 +46,8 @@ The application includes:
 | Grafana Business Metrics dashboard JSON | `dashboards/business-metrics.json` |
 | Prometheus alert definitions | `alerts/critical-alerts.yaml`, `charts/techbleat-bank/templates/critical-alerts.yaml` |
 | Critical alert runbooks | `runbooks/` |
-| Screenshot/evidence | `screenshots/`, `evidence/` |
+| Command/API evidence | `evidence/` |
+| Screenshot checklist | `screenshots/README.md` |
 | Deployment documentation | This README |
 | Demo video | Add link below |
 
@@ -30,6 +56,31 @@ Demo video:
 ```text
 TODO: add 3-5 minute demo video link
 ```
+
+## Capstone Requirement Traceability
+
+This section maps the assignment requirements to repository deliverables.
+
+| Capstone area | Requirement | Evidence / implementation |
+|---|---|---|
+| Containerisation | Production Dockerfiles for all app components | `techbleat-global-bank-frontend/Dockerfile`, backend service Dockerfiles |
+| Image registry | Versioned image tags, not `latest` | Public ECR `v2.x` image references in this README and Helm values |
+| Image security | Trivy/Snyk scan evidence | `security/trivy/`, `.github/workflows/build-scan-push.yml`, `.github/workflows/image-scan.yml` |
+| Kubernetes workloads | Deployments/StatefulSets for app and dependencies | `charts/techbleat-bank/templates/` |
+| Services and Ingress | ClusterIP services and frontend/API routing | `charts/techbleat-bank/templates/*/service.yaml`, `charts/techbleat-bank/templates/frontend/ingress.yaml` |
+| ConfigMaps and Secrets | Externalized runtime config and credentials | `charts/techbleat-bank/templates/*/configmap.yaml`, `secret.yaml`, `platform/external-secrets/` |
+| Resource control | Requests and limits | `charts/techbleat-bank/values.yaml` |
+| Health checks | Liveness/readiness probes | service deployment templates under `charts/techbleat-bank/templates/` |
+| HPA | Transaction-service scales `2-6`; other stateless services conservative | `charts/techbleat-bank/templates/*/hpa.yaml`, `evidence/03-banking-hpa.txt` |
+| Persistence | PostgreSQL PVC | `charts/techbleat-bank/templates/postgres/statefulset.yaml` |
+| Namespace | Dedicated `banking` namespace | `charts/techbleat-bank/templates/namespace.yaml` |
+| Metrics | Prometheus, ServiceMonitors, exporters, PromQL rules | `charts/techbleat-bank/templates/*servicemonitor.yaml`, `prometheusrules.yaml`, `evidence/07-*`, `evidence/08-*` |
+| Dashboards | Operations and Business dashboards | `dashboards/operations-overview.json`, `dashboards/business-metrics.json` |
+| Alerting | Required alert rules and Slack route | `alerts/`, `charts/techbleat-bank/templates/critical-alerts.yaml` |
+| Runbooks | Critical alert runbooks | `runbooks/` |
+| Logging | Loki and Promtail | `monitoring/grafana-datasources/loki-datasource.yaml`, `evidence/09-loki-banking-logs.json` |
+| Tracing | Tempo and OpenTelemetry transaction-service tracing | `monitoring/grafana-datasources/tempo-datasource.yaml`, `evidence/10-tempo-transaction-traces.json` |
+| Documentation | Setup/access/evidence docs | This README, `evidence/README.md`, `screenshots/README.md` |
 
 ## Container Images
 
@@ -167,7 +218,7 @@ kafka-exporter           1/1 Running
 
 ## Application Access
 
-The EKS deployment has an NGINX Ingress Controller backed by an AWS load balancer.
+When the environment is deployed, the EKS deployment uses an NGINX Ingress Controller backed by an AWS load balancer.
 
 Check the ingress address:
 
@@ -394,7 +445,9 @@ Command/API evidence collected from the live EKS cluster is stored in:
 evidence/
 ```
 
-This includes Kubernetes pod/service/HPA state, ingress HTTP checks, Prometheus target/rule data, Loki query output, and Tempo trace search output. Browser screenshots and the demo video still need to be captured from a graphical browser/recorder.
+This includes Kubernetes pod/service/HPA state, ingress HTTP checks, Prometheus target/rule data, Loki query output, and Tempo trace search output.
+
+Browser screenshots and the demo video still need to be captured from a graphical browser/recorder after recreating the environment.
 
 ## CI/CD And Security Gates
 
@@ -420,7 +473,7 @@ Required GitHub secret:
 AWS_GITHUB_ACTIONS_ROLE_ARN
 ```
 
-That role must allow GitHub Actions OIDC to push to Public ECR.
+That role must allow GitHub Actions OIDC to push to Public ECR. The role was created during implementation and later destroyed with the AWS teardown. Recreate the Terraform infrastructure before adding/using this secret again.
 
 `image-scan.yml` audits already deployed Public ECR images and uploads Trivy table/SARIF reports.
 
@@ -455,6 +508,7 @@ Expected screenshots:
 
 ## Known Limitations
 
+- The AWS/EKS environment has been destroyed to stop costs. Recreate it before attempting live browser, Grafana, Prometheus, Loki, or Tempo access.
 - DNS/TLS for a real production domain is not configured yet; current EKS ingress works over HTTP using the AWS load balancer and `Host: bank.local`.
 - The in-cluster Kafka deployment is single-node and suitable for assignment/demo use, not production HA.
 - In-cluster PostgreSQL is suitable for assignment/demo use; production AWS deployments should consider Amazon RDS.

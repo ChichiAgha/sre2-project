@@ -1,6 +1,8 @@
 # Evidence Index
 
-This directory contains command/API evidence collected from the live EKS deployment.
+This directory contains public command/API evidence collected from the live EKS deployment before the environment was torn down to stop AWS costs.
+
+The files here are assignment evidence, not personal learning notes. Detailed private working notes are kept locally in `IMPLEMENTATION.md`, which is intentionally ignored and not pushed to GitHub.
 
 Files:
 
@@ -18,4 +20,4 @@ Files:
 - `12-ingress-frontend-http.txt`: HTTP `200` frontend response through the Ingress.
 - `13-ingress-user-health.txt`: `/api/users/health` response through the Ingress.
 
-Browser screenshots and demo video should still be captured separately from a graphical environment.
+Browser screenshots and demo video should still be captured separately from a graphical environment after recreating the EKS environment.

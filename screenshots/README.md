@@ -2,6 +2,8 @@
 
 Store final screenshots in this directory.
 
+The AWS/EKS environment has been destroyed to stop costs, so these screenshots need to be captured after the environment is recreated.
+
 Required evidence:
 
 - `01-kubectl-pods-banking.png`: `kubectl get pods -n banking`
