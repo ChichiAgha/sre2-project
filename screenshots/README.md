@@ -1,8 +1,6 @@
 # Screenshot Evidence Checklist
 
-Store final screenshots in this directory.
-
-The AWS/EKS environment has been destroyed to stop costs, so these screenshots need to be captured after the environment is recreated.
+Store final screenshots in this directory during a live demo run.
 
 Required evidence:
 

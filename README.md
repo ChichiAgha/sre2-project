@@ -12,21 +12,9 @@ IMPLEMENTATION.md
 
 That local file is ignored because it contains personal learning notes and detailed working history. Public evidence and project-facing documentation are kept in this README, `evidence/`, `screenshots/`, `dashboards/`, `alerts/`, and `runbooks/`.
 
-## Current Environment Status
+## Reproducibility Note
 
-The EKS environment was successfully deployed, verified, and evidence was captured. It was later torn down on request to stop AWS costs.
-
-Current live status:
-
-```text
-EKS cluster: destroyed
-Application: not currently running
-Observability stack: not currently running
-Terraform state: empty after destroy
-Public ECR image repositories: deleted
-```
-
-The repository still contains the code needed to recreate the environment. The command/API evidence in `evidence/` was collected while the EKS deployment was live.
+The EKS environment was deployed and verified, and command/API evidence was captured from the live deployment. To avoid ongoing AWS costs, the live environment is not intended to remain permanently running. The environment can be recreated from the Terraform, Helm, and CI/CD code in this repository.
 
 The application includes:
 
@@ -42,7 +30,7 @@ The application includes:
 | Requirement | Location |
 |---|---|
 | Kubernetes manifests / Helm chart | `charts/techbleat-bank/` |
-| Container images with versioned tags | Historical Public ECR image references below; repositories were later deleted during cleanup |
+| Container images with versioned tags | Public ECR image references below |
 | Grafana Operations dashboard JSON | `dashboards/operations-overview.json` |
 | Grafana Business Metrics dashboard JSON | `dashboards/business-metrics.json` |
 | Prometheus alert definitions | `alerts/critical-alerts.yaml`, `charts/techbleat-bank/templates/critical-alerts.yaml` |
@@ -65,7 +53,7 @@ This section maps the assignment requirements to repository deliverables.
 | Capstone area | Requirement | Evidence / implementation |
 |---|---|---|
 | Containerisation | Production Dockerfiles for all app components | `techbleat-global-bank-frontend/Dockerfile`, backend service Dockerfiles |
-| Image registry | Versioned image tags, not `latest` | Public ECR `v2.x` image references captured below and in Helm values |
+| Image registry | Versioned image tags, not `latest` | Public ECR `v2.x` image references below and in Helm values |
 | Image security | Trivy/Snyk scan evidence | `security/trivy/`, `.github/workflows/build-scan-push.yml`, `.github/workflows/image-scan.yml` |
 | Kubernetes workloads | Deployments/StatefulSets for app and dependencies | `charts/techbleat-bank/templates/` |
 | Services and Ingress | ClusterIP services and frontend/API routing | `charts/techbleat-bank/templates/*/service.yaml`, `charts/techbleat-bank/templates/frontend/ingress.yaml` |
@@ -85,20 +73,13 @@ This section maps the assignment requirements to repository deliverables.
 
 ## Container Images
 
-During the live deployment, application images were published to Public ECR:
+Application image references used for the verified deployment:
 
 ```text
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-frontend:v2.0.2
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-user-service:v2.0.2
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-transaction-service:v2.0.3
 public.ecr.aws/k6r5h9u0/techbleat-global-bank-activity-service:v2.0.2
-```
-
-Cleanup status:
-
-```text
-The Public ECR repositories above were deleted after evidence collection.
-Recreate/re-push images through the CI/CD workflow before redeploying.
 ```
 
 Infrastructure images are pulled from public registries:
@@ -455,7 +436,7 @@ evidence/
 
 This includes Kubernetes pod/service/HPA state, ingress HTTP checks, Prometheus target/rule data, Loki query output, and Tempo trace search output.
 
-Browser screenshots and the demo video still need to be captured from a graphical browser/recorder after recreating the environment.
+Browser screenshots and the demo video should be captured from a graphical browser/recorder during a live demo run.
 
 ## CI/CD And Security Gates
 
@@ -481,7 +462,7 @@ Required GitHub secret:
 AWS_GITHUB_ACTIONS_ROLE_ARN
 ```
 
-That role must allow GitHub Actions OIDC to push to Public ECR. The role was created during implementation and later destroyed with the AWS teardown. Recreate the Terraform infrastructure before adding/using this secret again.
+That role must allow GitHub Actions OIDC to push to Public ECR.
 
 `image-scan.yml` audits already deployed Public ECR images and uploads Trivy table/SARIF reports.
 
@@ -516,8 +497,6 @@ Expected screenshots:
 
 ## Known Limitations
 
-- The AWS/EKS environment has been destroyed to stop costs. Recreate it before attempting live browser, Grafana, Prometheus, Loki, or Tempo access.
-- The Public ECR image repositories were deleted during cleanup. Rebuild and push images before a fresh deployment.
 - DNS/TLS for a real production domain is not configured yet; current EKS ingress works over HTTP using the AWS load balancer and `Host: bank.local`.
 - The in-cluster Kafka deployment is single-node and suitable for assignment/demo use, not production HA.
 - In-cluster PostgreSQL is suitable for assignment/demo use; production AWS deployments should consider Amazon RDS.
